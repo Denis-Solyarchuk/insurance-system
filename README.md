@@ -1,2 +1,39 @@
-# insurance-system
-Educational Project: Insurance Company Management System (tracking of clients, contracts, and insurance claims)
+# Система управління страховою компанією
+
+Навчальний проєкт: консольна система обліку клієнтів, страхових полісів і страхових подій.
+
+## Архітектура
+
+Багаторівнева архітектура, кожен шар у окремому проєкті:
+
+| Проєкт | Шар | Відповідальність |
+|---|---|---|
+| `Insurance.Domain` | Domain | Сутності (Client, Policy, Agent, Claim), enum-и, валідація власних полів |
+| `Insurance.Persistence` | Persistence | Збереження даних: `IRepository<T>` і реалізація `JsonRepository<T>` (JSON-файли) |
+| `Insurance.Business` | Business Logic | Сервіси з бізнес-правилами, розрахунок вартості поліса |
+| `Insurance.UI` | Presentation | Консольне меню |
+| `Insurance.Tests` | Тести | xUnit-тести бізнес-логіки та збереження |
+
+Залежності: `UI → Business → Persistence → Domain`.
+Integration Layer (EF Core, віддалені сервіси) буде додано пізніше.
+
+## Реалізовано (етап 1)
+
+- Сутності Client, Policy, Agent, Claim з валідацією.
+- CRUD для клієнтів і полісів.
+- Створення страхової події, пов'язаної з полісом.
+- Розрахунок вартості поліса: `покриття × тариф × (днів / 365)`.
+  Тарифи: авто 5%, медичне 3%, майнове 2%.
+- Збереження даних у JSON-файли.
+
+## Запуск
+
+Потрібен .NET 9 SDK.
+
+    dotnet run --project Insurance.UI
+
+Дані зберігаються в папці `data/` поруч із виконуваним файлом.
+
+## Тести
+
+    dotnet test
