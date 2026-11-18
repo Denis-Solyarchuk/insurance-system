@@ -94,4 +94,53 @@ public class PolicyServiceTests
 
         Assert.Throws<ValidationException>(() => _service.Create(policy));
     }
+
+    [Fact]
+    public void ChangeStatus_ActiveToSuspended_Succeeds()
+    {
+        var client = AddClient();
+        var policy = _service.Create(NewPolicy(client.Id));
+
+        _service.ChangeStatus(policy.Id, PolicyStatus.Suspended);
+
+        Assert.Equal(PolicyStatus.Suspended, _service.Get(policy.Id)!.Status);
+    }
+
+    [Fact]
+    public void ChangeStatus_FromFinished_ThrowsValidationException()
+    {
+        var client = AddClient();
+        var policy = _service.Create(NewPolicy(client.Id));
+        _service.ChangeStatus(policy.Id, PolicyStatus.Finished);
+
+        Assert.Throws<ValidationException>(() =>
+            _service.ChangeStatus(policy.Id, PolicyStatus.Active));
+    }
+
+    [Fact]
+    public void Create_And_Delete_UpdateClientPolicyCount()
+    {
+        var client = AddClient();
+        var policy = _service.Create(NewPolicy(client.Id));
+        Assert.Equal(1, _clients.GetById(client.Id)!.PolicyCount);
+
+        _service.Delete(policy.Id);
+        Assert.Equal(0, _clients.GetById(client.Id)!.PolicyCount);
+    }
+
+    [Fact]
+    public void Search_ByMaxCost_ReturnsOnlyCheaperPolicies()
+    {
+        var client = AddClient();
+        _service.Create(NewPolicy(client.Id, "A-1"));              // авто: 5000
+
+        var medical = NewPolicy(client.Id, "M-1");
+        medical.Type = PolicyType.Medical;                         // медичне: 3000
+        _service.Create(medical);
+
+        var result = _service.Search(new PolicySearchCriteria { MaxCost = 4_000m }).ToList();
+
+        Assert.Single(result);
+        Assert.Equal("M-1", result[0].Number);
+    }
 }

@@ -22,14 +22,21 @@ public class JsonRepository<T> : IRepository<T> where T : class
         Load();
     }
 
-    public IEnumerable<T> GetAll() => _items.ToList();
+    // Репозиторій віддає копії, щоб зміни поза сервісом не потрапляли у сховище без валідації
+    private static T Clone(T item) =>
+        JsonSerializer.Deserialize<T>(JsonSerializer.Serialize(item, Options), Options)!;
 
-    public T? GetById(Guid id) =>
-        _items.FirstOrDefault(x => _idSelector(x) == id);
+    public IEnumerable<T> GetAll() => _items.Select(Clone).ToList();
+
+    public T? GetById(Guid id)
+    {
+        var item = _items.FirstOrDefault(x => _idSelector(x) == id);
+        return item == null ? null : Clone(item);
+    }
 
     public void Add(T item)
     {
-        _items.Add(item);
+        _items.Add(Clone(item));
         Save();
     }
 
@@ -39,7 +46,7 @@ public class JsonRepository<T> : IRepository<T> where T : class
         if (index < 0)
             throw new KeyNotFoundException("Об'єкт не знайдено.");
 
-        _items[index] = item;
+        _items[index] = Clone(item);
         Save();
     }
 

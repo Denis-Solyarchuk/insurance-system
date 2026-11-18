@@ -26,6 +26,19 @@ public class JsonRepositoryTests : IDisposable
         Assert.Equal(ClientType.LegalEntity, loaded.Type);
     }
 
+    [Fact]
+    public void GetById_ReturnsCopy_SoChangesDoNotAffectStorageUntilUpdate()
+    {
+        var client = new Client { FullName = "Іваненко Іван" };
+        var repo = new JsonRepository<Client>(_path, c => c.Id);
+        repo.Add(client);
+
+        var copy = repo.GetById(client.Id)!;
+        copy.FullName = "Змінено без Update";
+
+        Assert.Equal("Іваненко Іван", repo.GetById(client.Id)!.FullName);
+    }
+
     public void Dispose()
     {
         if (File.Exists(_path)) File.Delete(_path);
