@@ -6,10 +6,12 @@ namespace Insurance.Business;
 public class ClientService
 {
     private readonly IRepository<Client> _clients;
+    private readonly IRepository<Policy> _policies;
 
-    public ClientService(IRepository<Client> clients)
+    public ClientService(IRepository<Client> clients, IRepository<Policy> policies)
     {
         _clients = clients;
+        _policies = policies;
     }
 
     public Client Create(Client client)
@@ -35,5 +37,14 @@ public class ClientService
         _clients.Update(client);
     }
 
-    public bool Delete(Guid id) => _clients.Delete(id);
+    public bool Delete(Guid id)
+    {
+        if (_policies.GetAll().Any(p => p.ClientId == id))
+            throw new ValidationException(new List<string>
+            {
+                "Неможливо видалити клієнта, у якого є поліси."
+            });
+
+        return _clients.Delete(id);
+    }
 }

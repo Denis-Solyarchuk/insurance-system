@@ -9,7 +9,8 @@ public class Client
     public string Phone { get; set; } = "";
     public string Email { get; set; } = "";
     public ClientType Type { get; set; }
-    
+
+    // Оновлюються автоматично сервісами
     public int PolicyCount { get; set; }
     public decimal TotalPayouts { get; set; }
 
@@ -30,5 +31,5 @@ public class Client
     }
 
     public override string ToString() =>
-        $"{Id.ToString()[..8]} | {FullName} | {Type} | {Phone} | {Email}";
+        $"{Id.ToString()[..8]} | {FullName} | {Type} | {Phone} | {Email} | полісів: {PolicyCount} | виплат: {TotalPayouts:N2}";
 }
